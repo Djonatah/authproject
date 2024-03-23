@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.0
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://db_mysql:3306/keycloak
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: keycloak
+#      KC_DB: postgres
+#      KC_DB_URL: jdbc:postgresql://db_postgres:5432/keycloak
+#      KC_DB_USERNAME: postgres
+#      KC_DB_PASSWORD: keycloak
+    command:
+      - start-dev
+    depends_on:
+        db_mysql:
+          condition: service_healthy
+#      db_postgres:
+
+  db_mysql:
+    image: mysql:latest
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    ports:
+      - "33061:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=keycloak
+      - MYSQL_DATABASE=keycloak
+    security_opt:
+      - seccomp:unconfined
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+#  db_postgres:
+#    image: postgres:latest
+#    volumes:
+#      - ./pgdata:/var/lib/postgresql/data
+#    ports:
+#      - "54321:5432"
+#    environment:
+#      POSTGRES_DB: keycloak
+#      POSTGRES_PASSWORD: keycloak
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready", "-d", "keycloack"]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 5
+#
+
+
